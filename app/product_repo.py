@@ -6,16 +6,14 @@ class ProductRepo:
     """Repozytorium DB do zarządzania produktami"""
 
     def __init__(self):
-        self.host = os.getenv("DB_HOST", "185.200.47.182")
-        self.db = os.getenv("DB_NAME", "bykowski_test")
-        self.user = os.getenv("DB_USER", "bykowski_test")
-        self.pw = os.getenv("DB_PASS", "CrcUzE5qEBVVvRFvB8Sc")
+        self.host = os.getenv("DB_HOST", "localhost")
+        self.user= os.getenv("DB_USER", "root")
+        self.db = os.getenv("DB_NAME", "store")
 
     def _conn(self):
         return pymysql.connect(
             host=self.host,
             user=self.user,
-            password=self.pw,
             database=self.db,
             autocommit=True,
             cursorclass=pymysql.cursors.DictCursor,

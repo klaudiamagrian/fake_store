@@ -7,7 +7,7 @@ class ProductRepo:
 
     def __init__(self):
         self.host = os.getenv("DB_HOST", "localhost")
-        self.user= os.getenv("DB_USER", "root")
+        self.user = os.getenv("DB_USER", "root")
         self.db = os.getenv("DB_NAME", "store")
 
     def _conn(self):
@@ -19,24 +19,29 @@ class ProductRepo:
             cursorclass=pymysql.cursors.DictCursor,
         )
 
-    # ========= FIXTURE: schema =========
+    # ========= FIXTURE =========
+
     def ensure_schema(self):
-        """Tworzy tabelę products (raz na sesję testów)"""
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS products (
-                                                        id INT PRIMARY KEY,
-                                                        name VARCHAR(255) NOT NULL,
+                    id INT PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL,
                     price_net FLOAT NOT NULL,
                     price_gross FLOAT NOT NULL
-                    )
+                )
                 """
             )
 
+    def clear(self):
+        """Czyści tabelę – używane w testach integracyjnych"""
+        with self._conn() as c, c.cursor() as cur:
+            cur.execute("DELETE FROM products")
+
     # ========= CRUD =========
+
     def save(self, product: dict):
-        """Dodaje nowy produkt"""
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """
@@ -52,7 +57,6 @@ class ProductRepo:
             )
 
     def get(self, product_id: int):
-        """Pobiera produkt po ID"""
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """
@@ -65,7 +69,6 @@ class ProductRepo:
             return cur.fetchone()
 
     def update(self, product: dict) -> bool:
-        """Aktualizuje produkt"""
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """
@@ -85,7 +88,6 @@ class ProductRepo:
             return cur.rowcount > 0
 
     def delete(self, product_id: int) -> bool:
-        """Usuwa produkt"""
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 "DELETE FROM products WHERE id=%s",

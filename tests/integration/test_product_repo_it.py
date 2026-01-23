@@ -1,6 +1,6 @@
 import pytest
 import pymysql
-from app.product_repo import ProductRepo
+from fake_store.app.product_repo import ProductRepo
 
 
 class TestProductRepositoryIntegration:

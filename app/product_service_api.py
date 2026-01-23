@@ -1,4 +1,4 @@
-# app/product_service.py
+# app/product_service_api.py
 class ProductService:
     """Logika biznesowa produktów"""
 

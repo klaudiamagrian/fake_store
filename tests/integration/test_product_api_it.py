@@ -1,18 +1,14 @@
-import requests
+from app.product_client import ProductClient
 
-BASE = "https://fakestoreapi.com/products"
-
-def test_get_single_product():
-    res = requests.get(f"{BASE}/1")
-    assert res.status_code == 200
-
-    product = res.json()
+def test_get_product_by_id():
+    product = ProductClient().get(1)
     assert product["id"] == 1
-    assert "title" in product
-    assert "price" in product
+    assert product is not None
+    assert product["title"] == "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops"
 
-def test_get_all_products():
-    res = requests.get(BASE)
-    assert res.status_code == 200
-    assert isinstance(res.json(), list)
-    assert len(res.json()) > 0
+def test_list_all_products():
+    products = ProductClient().list_all()
+    assert products is not None
+    assert len(products) > 0
+    assert products[0]["id"] == 1
+

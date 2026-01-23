@@ -1,4 +1,5 @@
 import pytest
+import pymysql
 from app.product_repo import ProductRepo
 
 
@@ -21,7 +22,7 @@ class TestProductRepositoryIntegration:
                 INSERT INTO products (id, name, price_net, price_gross)
                 VALUES (%s, %s, %s, %s)
                 """,
-                (1, "BaseProduct", 10.0, 12.3),
+                (1000, "BaseProduct", 10.0, 12.3),
             )
 
     # ========= HELPER =========
@@ -40,6 +41,7 @@ class TestProductRepositoryIntegration:
             {"id": 3, "name": "ProdB", "price_net": 30.0, "price_gross": 36.9},
         ],
     )
+
     def test_add_product(self, product):
         repo = ProductRepo()
         repo.save(product)
@@ -73,13 +75,10 @@ class TestProductRepositoryIntegration:
     def test_update_product(self, product):
         repo = ProductRepo()
         repo.save(product)
-
         updated = dict(product)
         updated["price_gross"] += 10
-
         repo.update(updated)
         result = repo.get(product["id"])
-
         assert result["price_gross"] == updated["price_gross"]
 
     @pytest.mark.parametrize(
@@ -92,9 +91,55 @@ class TestProductRepositoryIntegration:
     def test_delete_product_by_count(self, product):
         repo = ProductRepo()
         initial = self.get_count()
-
         repo.save(product)
         repo.delete(product["id"])
-
         assert self.get_count() == initial
         assert repo.get(product["id"]) is None
+    
+
+    def test_get_non_existing_product_returns_none(self):
+        repo = ProductRepo()
+        assert repo.get(999999) is None
+
+    def test_update_non_existing_product_returns_false(self):
+        repo = ProductRepo()
+        result = repo.update({
+            "id": 999,
+            "name": "Ghost",
+            "price_net": 1.0,
+            "price_gross": 1.23,
+        })
+        assert result is False
+
+
+    def test_delete_non_existing_product_returns_false(self):
+        repo = ProductRepo()
+        result = repo.delete(999999)
+        assert result is False
+
+
+    def test_save_and_get_returns_same_data(self):
+        product = {
+            "id": 10,
+            "name": "FullCheck",
+            "price_net": 11.0,
+            "price_gross": 13.53,
+        }
+        repo = ProductRepo()
+        repo.save(product)
+        loaded = repo.get(10)
+        assert loaded == product
+
+    def test_cannot_insert_duplicate_id(self):
+        repo = ProductRepo()
+
+        product = {
+            "id": 1000,  # już istnieje z fixture
+            "name": "Dup",
+            "price_net": 1.0,
+            "price_gross": 1.23,
+        }
+
+        with pytest.raises(pymysql.err.IntegrityError):
+            repo.save(product)
+

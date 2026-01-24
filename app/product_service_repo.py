@@ -8,14 +8,12 @@ class ProductServiceRepo:
 
     VAT_RATE = 0.23
     MAX_NAME_LENGTH = 80
-    MAX_PRICE = 50_000
+    MAX_PRICE = 50000
 
     def __init__(self, repo):
         self.repo = repo
 
-    # =====================================================
-    # NORMALIZACJA
-    # =====================================================
+    # NORMALIZACJA -> METODA NR 1 - NORMALIZE_NAME
 
     def normalize_name(self, name: str) -> str:
         """Trim + usunięcie podwójnych spacji"""
@@ -23,9 +21,7 @@ class ProductServiceRepo:
         name = " ".join(name.split())
         return name
 
-    # =====================================================
-    # WALIDACJA
-    # =====================================================
+    # WALIDACJA -> METODA NR 2 - VALIDATE_NAME
 
     def validate_name(self, name: str) -> str:
         name = self.normalize_name(name)
@@ -37,6 +33,8 @@ class ProductServiceRepo:
             raise ValueError("Product name too long")
 
         return name
+
+    # METODA NR 3 - VALIDATE_PRICE_NET
 
     def validate_price_net(self, price_net: float) -> float:
         if not isinstance(price_net, (int, float)):
@@ -50,6 +48,8 @@ class ProductServiceRepo:
 
         return round(float(price_net), 2)
 
+    # METODA NR 4 - VALIDATE_PRICE_GROSS
+
     def validate_price_gross(self, price_net: float, price_gross: float) -> float:
         expected = price_net * (1 + self.VAT_RATE)
 
@@ -58,24 +58,23 @@ class ProductServiceRepo:
 
         return round(float(price_gross), 2)
 
-    # =====================================================
-    # OBLICZENIA
-    # =====================================================
 
+    # OBLICZENIA: METODA NR 5 ORAZ METODA NR 6
+
+    # METODA NR 5 - COMPUTE_GROSS_PRICE
     def compute_gross_price(self, price_net: float) -> float:
         """Oblicza cenę brutto na podstawie VAT"""
         return round(price_net * (1 + self.VAT_RATE), 2)
 
+    # METODA NR 6 - COMPUTE_MARGIN
     def compute_margin(self, buy_price: float, sell_price: float) -> float:
-        """Marża procentowa"""
+        """Marża procentowa - o ile procent sprzedano drożej (albo taniej) niż kupiono"""
         if buy_price <= 0:
             raise ValueError("Invalid buy price")
 
         return round(((sell_price - buy_price) / buy_price) * 100, 2)
 
-    # =====================================================
     # OPERACJE BIZNESOWE
-    # =====================================================
 
     def create_product(self, product_id: int, name: str, price_net: float) -> int:
         """

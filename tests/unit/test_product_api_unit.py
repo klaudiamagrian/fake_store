@@ -1,5 +1,5 @@
 import pytest
-from fake_store.app.product_service_api import ProductService
+from app.product_service_api import ProductService
 
 def test_compute_gross_price_positive():
     service = ProductService(None, None)

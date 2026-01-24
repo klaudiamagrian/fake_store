@@ -1,4 +1,4 @@
-from fake_store.app.product_client import ProductClient
+from app.product_client import ProductClient
 
 def test_get_product_by_id():
     product = ProductClient().get(1)

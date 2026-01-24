@@ -68,6 +68,11 @@ class ProductRepo:
             )
             return cur.fetchone()
 
+    def get_all(self):
+        with self._conn() as c, c.cursor() as cur:
+            cur.execute("SELECT * FROM products")
+            return cur.fetchall()
+
     def update(self, product: dict) -> bool:
         with self._conn() as c, c.cursor() as cur:
             cur.execute(

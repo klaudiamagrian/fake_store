@@ -23,6 +23,20 @@ def test_normalize_name_if_none_then_empty_string():
     service = ProductService(None)
     assert service.normalize_name(None) == ""
 
+# METODA NR 1 - test 4 => test parametryczny - w zasadzie sprawdza to samo, co powyższe
+@pytest.mark.parametrize("input_name, expected",
+    [
+        ("Laptop", "Laptop"),
+        ("  Laptop  ", "Laptop"),
+        ("  Laptop   Pro ", "Laptop Pro"),
+        ("", ""),
+        (None, ""),
+    ],
+)
+def test_normalize_name_parametrized(input_name, expected):
+    service = ProductService(None)
+    assert service.normalize_name(input_name) == expected
+
 # TESTY: METODA NR 2 - VALIDATE_NAME
 
 # METODA NR 2 - test 1 => (przypadek brzegowy) najmniejszy dopuszczalny string (ilość znaków = 3) i sprawdzenie usuwania spacji z końca i początku stringa
@@ -121,6 +135,19 @@ def test_validate_price_is_list():
     with pytest.raises(ValueError):
         service.validate_price_net([1])
 
+# METODA NR 3 - test 10 => test parametryczny - poprawne wartości
+@pytest.mark.parametrize(
+    "price, expected",
+    [
+        (10, 10.00),
+        (19.999, 20.00),
+        (50000, 50000.00),
+    ],
+)
+def test_validate_price_net_valid(price, expected):
+    service = ProductService(None)
+    assert service.validate_price_net(price) == expected
+
 # TESTY: METODA NR 4 - VALIDATE_PRICE_GROSS
 
 # METODA NR 4 - test 1 => happy path
@@ -154,6 +181,22 @@ def test_validate_price_gross_under_mistake_tolerance():
     service = ProductService(None)
     with pytest.raises(ValueError):
         service.validate_price_gross(100, 123.06)
+
+# METODA NR 4 - test 7 => test paramateryczny - poprawne wartości
+@pytest.mark.parametrize(
+    "price_net, price_gross",
+    [
+        (100, 123.00),
+        (100, 122.95),
+        (100, 123.05),
+        (100, 123.049),
+    ],
+)
+def test_validate_price_gross_valid(price_net, price_gross):
+    service = ProductService(None)
+    result = service.validate_price_gross(price_net, price_gross)
+    assert isinstance(result, float)
+
 
 # TESTY: METODA NR 5 - COMPUTE_GROSS_PRICE
 
@@ -231,6 +274,20 @@ def compyte_margin_sell_price_below_zero():
     service = ProductService(None)
     result = service.compute_margin(100, -50)
     assert result == -150.00
+
+# METODA NR 6 - test 10 => test parametryczny - happy path
+@pytest.mark.parametrize(
+    "buy, sell, expected",
+    [
+        (100, 150, 50.00),
+        (100, 100, 0.00),
+        (100, 80, -20.00),
+        (3, 4, 33.33),
+    ],
+)
+def test_compute_margin_parametrized(buy, sell, expected):
+    service = ProductService(None)
+    assert service.compute_margin(buy, sell) == expected
 
 # TESTY: METODA NR 7 - CREATE_PRODUCT
 

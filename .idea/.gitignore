@@ -6,3 +6,15 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+# coverage
+.coverage
+htmlcov/
+
+# python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+*.iml
+

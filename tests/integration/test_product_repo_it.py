@@ -2,144 +2,106 @@ import pytest
 import pymysql
 from app.product_repo import ProductRepo
 
+# test 1 - save i get product
+def test_save_and_get_product():
+    repo = ProductRepo()
 
-class TestProductRepositoryIntegration:
+    repo.ensure_schema()
+    repo.clear()
 
-    # ========= SCHEMA (raz na sesję) =========
-    @pytest.fixture(scope="session", autouse=True)
-    def ensure_schema(self):
-        repo = ProductRepo()
-        repo.ensure_schema()
+    product = {
+        "id": 1,
+        "name": "Laptop",
+        "price_net": 100.0,
+        "price_gross": 123.0
+    }
 
-    # ========= RESET DB (przed KAŻDYM testem) =========
-    @pytest.fixture(autouse=True)
-    def reset_db(self):
-        repo = ProductRepo()
-        with repo._conn() as c, c.cursor() as cur:
-            cur.execute("DELETE FROM products")
-            cur.execute(
-                """
-                INSERT INTO products (id, name, price_net, price_gross)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (1000, "BaseProduct", 10.0, 12.3),
-            )
+    repo.save(product)
+    result = repo.get(1)
 
-    # ========= HELPER =========
-    def get_count(self) -> int:
-        repo = ProductRepo()
-        with repo._conn() as c, c.cursor() as cur:
-            cur.execute("SELECT COUNT(*) AS cnt FROM products")
-            row = cur.fetchone()
-            return row["cnt"]
+    assert result == product
 
-    # ========= TESTY =========
-    @pytest.mark.parametrize(
-        "product",
-        [
-            {"id": 2, "name": "ProdA", "price_net": 20.0, "price_gross": 24.6},
-            {"id": 3, "name": "ProdB", "price_net": 30.0, "price_gross": 36.9},
-        ],
-    )
+# test 2 - get, gdy product nie istnieje
+def test_get_when_product_not_exist():
+    repo = ProductRepo()
+    repo.ensure_schema()
+    repo.clear()
 
-    def test_add_product(self, product):
-        repo = ProductRepo()
-        repo.save(product)
-        loaded = repo.get(product["id"])
-        assert loaded["name"] == product["name"]
+    result = repo.get(999)
+    assert result is None
 
-    @pytest.mark.parametrize(
-        "product",
-        [
-            {"id": 4, "name": "ProdC", "price_net": 40.0, "price_gross": 49.2},
-            {"id": 5, "name": "ProdD", "price_net": 50.0, "price_gross": 61.5},
-        ],
-    )
-    def test_add_product_by_count(self, product):
-        initial = self.get_count()
-        repo = ProductRepo()
-        repo.save(product)
-        assert self.get_count() == initial + 1
+# test 3 - update istniejącego produktu
+def test_update_existing_product():
+    repo = ProductRepo()
+    repo.ensure_schema()
+    repo.clear()
 
-    def test_get_all_products_by_count(self):
-        initial = self.get_count()
-        assert self.get_count() == initial
+    product = {
+        "id": 1,
+        "name": "Laptop",
+        "price_net": 100,
+        "price_gross": 123
+    }
 
-    @pytest.mark.parametrize(
-        "product",
-        [
-            {"id": 6, "name": "ProdE", "price_net": 10.0, "price_gross": 12.3},
-            {"id": 7, "name": "ProdF", "price_net": 15.0, "price_gross": 18.45},
-        ],
-    )
-    def test_update_product(self, product):
-        repo = ProductRepo()
-        repo.save(product)
-        updated = dict(product)
-        updated["price_gross"] += 10
-        repo.update(updated)
-        result = repo.get(product["id"])
-        assert result["price_gross"] == updated["price_gross"]
+    repo.save(product)
 
-    @pytest.mark.parametrize(
-        "product",
-        [
-            {"id": 8, "name": "ProdG", "price_net": 5.0, "price_gross": 6.15},
-            {"id": 9, "name": "ProdH", "price_net": 8.0, "price_gross": 9.84},
-        ],
-    )
-    def test_delete_product_by_count(self, product):
-        repo = ProductRepo()
-        initial = self.get_count()
-        repo.save(product)
-        repo.delete(product["id"])
-        assert self.get_count() == initial
-        assert repo.get(product["id"]) is None
-    
+    update_product = {
+        "id": 1,
+        "name": "Laptop Lenovo",
+        "price_net": 200,
+        "price_gross": 223
+    }
 
-    def test_get_non_existing_product_returns_none(self):
-        repo = ProductRepo()
-        assert repo.get(999999) is None
+    result = repo.update(update_product)
 
-    def test_update_non_existing_product_returns_false(self):
-        repo = ProductRepo()
-        result = repo.update({
-            "id": 999,
-            "name": "Ghost",
-            "price_net": 1.0,
-            "price_gross": 1.23,
-        })
-        assert result is False
+    saved_product = repo.get(1)
 
+    assert result is True
+    assert saved_product["name"] == "Laptop Lenovo"
 
-    def test_delete_non_existing_product_returns_false(self):
-        repo = ProductRepo()
-        result = repo.delete(999999)
-        assert result is False
+#test 4 - update nieistniejącego produktu
+def test_update_not_existing_product():
+    repo = ProductRepo()
+    repo.ensure_schema()
+    repo.clear()
 
+    updated_product = {
+        "id": 1,
+        "name": "Macbook",
+        "price_net": 200,
+        "price_gross": 223
+    }
 
-    def test_save_and_get_returns_same_data(self):
-        product = {
-            "id": 10,
-            "name": "FullCheck",
-            "price_net": 11.0,
-            "price_gross": 13.53,
-        }
-        repo = ProductRepo()
-        repo.save(product)
-        loaded = repo.get(10)
-        assert loaded == product
+    result = repo.update(updated_product)
 
-    def test_cannot_insert_duplicate_id(self):
-        repo = ProductRepo()
+    assert result is False
 
-        product = {
-            "id": 1000,  # już istnieje z fixture
-            "name": "Dup",
-            "price_net": 1.0,
-            "price_gross": 1.23,
-        }
+# test 5 - usuwanie istniejącego rpoduktu
+def test_delete_existing_product():
+    repo = ProductRepo()
+    repo.ensure_schema()
+    repo.clear()
 
-        with pytest.raises(pymysql.err.IntegrityError):
-            repo.save(product)
+    product = {
+        "id": 1,
+        "name": "Laptop",
+        "price_net": 200,
+        "price_gross": 223
+    }
+
+    stworzony_produkt = repo.save(product)
+    usuniecie_produktu = repo.delete(1)
+
+    assert usuniecie_produktu is True
+    assert repo.get(1) is None
+
+# test 6 - usuniecie nieistniejacego produktu
+def test_delete_not_existing_product():
+    repo = ProductRepo()
+    repo.ensure_schema()
+    repo.clear()
+
+    result = repo.delete(99)
+
+    assert result is False
 

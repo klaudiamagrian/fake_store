@@ -1,7 +1,7 @@
 # app/main.py
 from product_client import ProductClient
 from product_repo import ProductRepo
-from product_service_api import ProductService
+from product_service import ProductService
 
 def main():
     client = ProductClient()

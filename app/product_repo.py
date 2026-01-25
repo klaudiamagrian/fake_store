@@ -19,7 +19,11 @@ class ProductRepo:
             cursorclass=pymysql.cursors.DictCursor,
         )
 
-    # ========= FIXTURE =========
+    # DO ZROBIENIA:
+    # 1. napisanie matody - odnosnie walidacji id (przy dodawaniu) - Amela w pliku product_Repo
+    # 2. Klaudia - pisze testy walidacji Amelii do tego
+    # 3. Fetch and store - Klaudia
+    # 4. Ola - reszta testów baza
 
     def ensure_schema(self):
         with self._conn() as c, c.cursor() as cur:
@@ -99,3 +103,4 @@ class ProductRepo:
                 (product_id,),
             )
             return cur.rowcount > 0
+

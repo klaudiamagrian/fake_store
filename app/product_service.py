@@ -16,14 +16,13 @@ class ProductService:
     def __init__(self, repo):
         self.repo = repo
 
-    # =========================
-    # NORMALIZACJA I WALIDACJA
-    # =========================
+    # METODA NR 1 - NORMALIZE_NAME
 
     def normalize_name(self, name: str) -> str:
         name = (name or "").strip()
         return " ".join(name.split())
 
+    # METODA NR 2 - VALIDATE_NAME
     def validate_name(self, name: str) -> str:
         name = self.normalize_name(name)
 
@@ -34,6 +33,8 @@ class ProductService:
             raise ValueError("Product name too long")
 
         return name
+
+    # METODA NR 3 - VALIDATE_PRICE_NET
 
     def validate_price_net(self, price_net: float) -> float:
         if not isinstance(price_net, (int, float)):
@@ -47,12 +48,29 @@ class ProductService:
 
         return round(float(price_net), 2)
 
-    # =========================
+    # METODA NR 4 - VALIDATE_PRICE_GROSS
+
+    def validate_price_gross(self, price_net: float, price_gross: float) -> float:
+        """
+        Sprawdza czy cena brutto odpowiada cenie netto + VAT
+        z tolerancją 5 groszy (błędy zaokrągleń).
+        """
+
+        expected = price_net * (1 + self.VAT_RATE)
+
+        if abs(price_gross - expected) > 0.05:
+            raise ValueError("Gross price does not match VAT rate")
+
+        return round(float(price_gross), 2)
+
     # OBLICZENIA
-    # =========================
+
+    # METODA NR 5 - COMPUTE_GROSS_PRICE
 
     def compute_gross_price(self, price_net: float) -> float:
         return round(price_net * (1 + self.VAT_RATE), 2)
+
+    # METODA NR 6 - COMPUTE_MARGIN
 
     def compute_margin(self, buy_price: float, sell_price: float) -> float:
         if buy_price <= 0:
@@ -60,9 +78,10 @@ class ProductService:
 
         return round(((sell_price - buy_price) / buy_price) * 100, 2)
 
-    # =========================
+
     # OPERACJE BIZNESOWE
-    # =========================
+
+    # METODA NR 7 - CREATE_PRODUCT
 
     def create_product(self, product_id: int, name: str, price_net: float) -> dict:
         """
@@ -90,6 +109,8 @@ class ProductService:
         self.repo.save(product)
         return product
 
+    # METODA NR 8 - UPDATE_PRICE
+
     def update_price(self, product_id: int, new_price_net: float) -> dict:
         product = self.repo.get(product_id)
         if product is None:
@@ -102,6 +123,8 @@ class ProductService:
         self.repo.update(product)
         return product
 
+    # METODA NR 9 - RENAME_PRODUCT
+
     def rename_product(self, product_id: int, new_name: str) -> dict:
         product = self.repo.get(product_id)
         if product is None:
@@ -110,6 +133,8 @@ class ProductService:
         product["name"] = self.validate_name(new_name)
         self.repo.update(product)
         return product
+
+    # METODA NR 10 - APPLY_DISCOUNT
 
     def apply_discount(self, product_id: int, percent: float) -> dict:
         if percent <= 0 or percent >= 90:
@@ -126,6 +151,8 @@ class ProductService:
 
         self.repo.update(product)
         return product
+
+    # METODA NR 11 - DELETE_PRODUCT
 
     def delete_product(self, product_id: int) -> bool:
         if self.repo.get(product_id) is None:

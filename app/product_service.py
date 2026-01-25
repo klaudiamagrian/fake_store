@@ -78,18 +78,21 @@ class ProductService:
     # METODA NR 7 - CREATE_PRODUCT
 
 
-    def create_product(self, name: str, price_net: float) -> dict:
+    def create_product(self, product_id: int, name: str, price_net: float) -> dict:
         """
-            Tworzy nowy produkt w systemie:
-            - waliduje dane
-            - liczy VAT
-            - sprawdza unikalność
-            - zapisuje do bazy
-            """
+        Tworzy nowy produkt w systemie:
+        - waliduje dane
+        - liczy VAT
+        - sprawdza unikalność
+        - zapisuje do bazy
+        """
         name = self.validate_name(name)
         price_net = self.validate_price_net(price_net)
         price_gross = self.compute_gross_price(price_net)
+        if self.repo.get(product_id):
+            raise ValueError("Product already exists")
         product = {
+            "id": product_id,
             "name": name,
             "price_net": price_net,
             "price_gross": price_gross

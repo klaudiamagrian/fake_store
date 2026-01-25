@@ -30,7 +30,7 @@ class ProductRepo:
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS products (
-                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    id INT PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
                     price_net FLOAT NOT NULL,
                     price_gross FLOAT NOT NULL
@@ -61,12 +61,11 @@ class ProductRepo:
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO products (name, price_net, price_gross)
-                VALUES (%s, %s, %s)
+                INSERT INTO products (id, name, price_net, price_gross)
+                VALUES (%s, %s, %s, %s)
                 """,
-                (product["name"], product["price_net"], product["price_gross"])
+                (product["id"], product["name"], product["price_net"], product["price_gross"])
             )
-            product["id"] = cur.lastrowid
 
     def get(self, product_id: int):
         with self._conn() as c, c.cursor() as cur:

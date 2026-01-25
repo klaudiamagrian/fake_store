@@ -1,6 +1,6 @@
 import pytest
 import pymysql
-from fake_store.app.product_repo import ProductRepo
+from app.product_repo import ProductRepo
 
 # test 1 - save i get product
 def test_save_and_get_product():

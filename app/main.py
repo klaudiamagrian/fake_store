@@ -41,10 +41,9 @@ def main():
 
         try:
             if choice == "1":
-                pid = input_int("ID produktu: ")
                 name = input("Nazwa produktu: ")
                 price = input_float("Cena netto: ")
-                product = service.create_product(pid, name, price)
+                product = service.create_product( name, price)
                 print("Dodano produkt:", product)
 
             elif choice == "2":
@@ -62,12 +61,14 @@ def main():
                 except Exception as e:
                     print("Błąd pobrania produktu z API:", e)
                     continue
-                product = service.create_product(
-                    product_id=api_product["id"],
-                    name=api_product["title"],
-                    price_net=api_product["price"]
-                )
-                print("Dodano produkt z API:", product)
+                try:
+                    product = service.create_product(
+                        name=api_product["title"],
+                        price_net=api_product["price"]
+                    )
+                    print("Dodano produkt z API:", product)
+                except ValueError as ve:
+                    print("Błąd walidacji produktu:", ve)
 
             elif choice == "4":
                 pid = input_int("ID produktu: ")

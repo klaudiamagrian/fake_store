@@ -8,10 +8,12 @@ class ProductClient:
         self.base_url = base_url.rstrip("/")
 
     def get(self, product_id: int) -> dict:
-        """Pobiera pojedynczy produkt po ID"""
+        if not isinstance(product_id, int) or product_id <= 0:
+            raise ValueError("Invalid product ID")
         r = requests.get(f"{self.base_url}/{product_id}", timeout=5)
         r.raise_for_status()
         return r.json()
+
 
     def list_all(self) -> list[dict]:
         """Pobiera listę produktów"""

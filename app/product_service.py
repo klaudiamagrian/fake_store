@@ -25,13 +25,10 @@ class ProductService:
     # METODA NR 2 - VALIDATE_NAME
     def validate_name(self, name: str) -> str:
         name = self.normalize_name(name)
-
         if len(name) < 3:
             raise ValueError("Product name too short")
-
         if len(name) > self.MAX_NAME_LENGTH:
             raise ValueError("Product name too long")
-
         return name
 
     # METODA NR 3 - VALIDATE_PRICE_NET
@@ -39,13 +36,10 @@ class ProductService:
     def validate_price_net(self, price_net: float) -> float:
         if not isinstance(price_net, (int, float)):
             raise ValueError("Invalid net price type")
-
         if price_net <= 0:
             raise ValueError("Net price must be positive")
-
         if price_net > self.MAX_PRICE:
             raise ValueError("Net price too high")
-
         return round(float(price_net), 2)
 
     # METODA NR 4 - VALIDATE_PRICE_GROSS
@@ -83,6 +77,7 @@ class ProductService:
 
     # METODA NR 7 - CREATE_PRODUCT
 
+
     def create_product(self, product_id: int, name: str, price_net: float) -> dict:
         """
         Tworzy nowy produkt w systemie:
@@ -91,21 +86,17 @@ class ProductService:
         - sprawdza unikalność
         - zapisuje do bazy
         """
-
         name = self.validate_name(name)
         price_net = self.validate_price_net(price_net)
         price_gross = self.compute_gross_price(price_net)
-
         if self.repo.get(product_id):
             raise ValueError("Product already exists")
-
         product = {
             "id": product_id,
             "name": name,
             "price_net": price_net,
-            "price_gross": price_gross,
+            "price_gross": price_gross
         }
-
         self.repo.save(product)
         return product
 
@@ -115,11 +106,9 @@ class ProductService:
         product = self.repo.get(product_id)
         if product is None:
             raise ValueError("Product not found")
-
         new_price_net = self.validate_price_net(new_price_net)
         product["price_net"] = new_price_net
         product["price_gross"] = self.compute_gross_price(new_price_net)
-
         self.repo.update(product)
         return product
 

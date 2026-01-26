@@ -44,7 +44,7 @@ def main():
                 pid = input_int("ID produktu: ")
                 name = input("Nazwa produktu: ")
                 price = input_float("Cena netto: ")
-                product = service.create_product(pid, name, price)
+                product = service.create_product( pid, name, price)
                 print("Dodano produkt:", product)
 
             elif choice == "2":

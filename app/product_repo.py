@@ -44,20 +44,27 @@ class ProductRepo:
             cur.execute("DELETE FROM products")
 
     # ========= CRUD =========
+    def validate_product(self, product: dict):
+        if not isinstance(product.get("name"), str) or not product["name"].strip():
+            raise ValueError("Product name must be a non-empty string")
+    
+        for key in ["price_net", "price_gross"]:
+            if key not in product or not isinstance(product[key], (int, float)) or product[key] < 0:
+                raise ValueError(f"{key} must be a non-negative number")
+    
+        if product["price_gross"] < product["price_net"]:
+            raise ValueError("price_gross cannot be lower than price_net")
+
 
     def save(self, product: dict):
+        self.validate_product(product)  # walidacja przed zapisaniem
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO products (id, name, price_net, price_gross)
                 VALUES (%s, %s, %s, %s)
                 """,
-                (
-                    product["id"],
-                    product["name"],
-                    product["price_net"],
-                    product["price_gross"],
-                ),
+                (product["id"], product["name"], product["price_net"], product["price_gross"])
             )
 
     def get(self, product_id: int):
@@ -78,6 +85,7 @@ class ProductRepo:
             return cur.fetchall()
 
     def update(self, product: dict) -> bool:
+        self.validate_product(product)
         with self._conn() as c, c.cursor() as cur:
             cur.execute(
                 """

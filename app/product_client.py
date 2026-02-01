@@ -12,6 +12,8 @@ class ProductClient:
             raise ValueError("Invalid product ID")
         r = requests.get(f"{self.base_url}/{product_id}", timeout=5)
         r.raise_for_status()
+        if not r.text.strip(): 
+            raise requests.exceptions.HTTPError(f"Product {product_id} not found")
         return r.json()
 
 

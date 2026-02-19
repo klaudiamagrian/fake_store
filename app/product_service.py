@@ -78,73 +78,84 @@ class ProductService:
     # METODA NR 7 - CREATE_PRODUCT
 
 
-    def create_product(self, product_id: int, name: str, price_net: float) -> dict:
-        """
-        Tworzy nowy produkt w systemie:
-        - waliduje dane
-        - liczy VAT
-        - sprawdza unikalność
-        - zapisuje do bazy
-        """
+    def create_product(self, name: str, price_net: float, external_id: int | None = None) -> dict:
         name = self.validate_name(name)
         price_net = self.validate_price_net(price_net)
         price_gross = self.compute_gross_price(price_net)
-        if self.repo.get(product_id):
-            raise ValueError("Product already exists")
+
+        # jeśli produkt z API i external_id już istnieje -> nie duplikuj
+        if external_id is not None:
+            existing = self.repo.get_by_external_id(external_id)
+            if existing:
+                raise ValueError("Product with this external_id already exists")
+
         product = {
-            "id": product_id,
+            "external_id": external_id,
             "name": name,
             "price_net": price_net,
             "price_gross": price_gross
         }
-        self.repo.save(product)
+        self.repo.save(product)  # nada product["id"]
+
+        # NOWOŚĆ: snapshot ceny przy utworzeniu
+        self.repo.add_price_snapshot(product["id"], product["price_net"], product["price_gross"])
         return product
 
-    # METODA NR 8 - UPDATE_PRICE
+
+        # METODA NR 8 - UPDATE_PRICE
 
     def update_price(self, product_id: int, new_price_net: float) -> dict:
-        product = self.repo.get(product_id)
-        if product is None:
-            raise ValueError("Product not found")
-        new_price_net = self.validate_price_net(new_price_net)
-        product["price_net"] = new_price_net
-        product["price_gross"] = self.compute_gross_price(new_price_net)
-        self.repo.update(product)
-        return product
+            product = self.repo.get(product_id)
+            if product is None:
+                raise ValueError("Product not found")
+            new_price_net = self.validate_price_net(new_price_net)
+            product["price_net"] = new_price_net
+            product["price_gross"] = self.compute_gross_price(new_price_net)
+            self.repo.update(product)
+            self.repo.add_price_snapshot(product["id"], product["price_net"], product["price_gross"])
+            return product
 
-    # METODA NR 9 - RENAME_PRODUCT
+
+        # METODA NR 9 - RENAME_PRODUCT
 
     def rename_product(self, product_id: int, new_name: str) -> dict:
-        product = self.repo.get(product_id)
-        if product is None:
-            raise ValueError("Product not found")
+            product = self.repo.get(product_id)
+            if product is None:
+                raise ValueError("Product not found")
 
-        product["name"] = self.validate_name(new_name)
-        self.repo.update(product)
-        return product
+            product["name"] = self.validate_name(new_name)
+            self.repo.update(product)
+            return product
 
-    # METODA NR 10 - APPLY_DISCOUNT
+        # METODA NR 10 - APPLY_DISCOUNT
 
     def apply_discount(self, product_id: int, percent: float) -> dict:
-        if percent <= 0 or percent >= 90:
-            raise ValueError("Invalid discount value")
+            if percent <= 0 or percent >= 90:
+                raise ValueError("Invalid discount value")
 
-        product = self.repo.get(product_id)
-        if product is None:
-            raise ValueError("Product not found")
+            product = self.repo.get(product_id)
+            if product is None:
+                raise ValueError("Product not found")
 
-        discounted = product["price_net"] * (1 - percent / 100)
+            discounted = product["price_net"] * (1 - percent / 100)
 
-        product["price_net"] = round(discounted, 2)
-        product["price_gross"] = self.compute_gross_price(product["price_net"])
+            product["price_net"] = round(discounted, 2)
+            product["price_gross"] = self.compute_gross_price(product["price_net"])
 
-        self.repo.update(product)
-        return product
+            self.repo.update(product)
+            self.repo.add_price_snapshot(product["id"], product["price_net"], product["price_gross"])
+            return product
 
-    # METODA NR 11 - DELETE_PRODUCT
+
+        # METODA NR 11 - DELETE_PRODUCT
 
     def delete_product(self, product_id: int) -> bool:
-        if self.repo.get(product_id) is None:
-            return False
+            if self.repo.get(product_id) is None:
+                return False
 
-        return self.repo.delete(product_id)
+            return self.repo.delete(product_id)
+
+    def best_deals(self, limit: int = 5) -> list[dict]:
+        if limit <= 0 or limit > 50:
+            raise ValueError("Invalid limit")
+        return self.repo.get_best_deals(limit)

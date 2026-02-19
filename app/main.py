@@ -35,16 +35,17 @@ def main():
         print("7. Usuń produkt")
         print("8. Wyświetl produkt z bazy")
         print("9. Wyświetl wszystkie produkty z bazy")
+        print("10. Ranking best deals (największy spadek ceny)")
         print("0. Wyjście")
+
 
         choice = input("Wybierz opcję: ")
 
         try:
             if choice == "1":
-                pid = input_int("ID produktu: ")
                 name = input("Nazwa produktu: ")
                 price = input_float("Cena netto: ")
-                product = service.create_product( pid, name, price)
+                product = service.create_product(name, price)
                 print("Dodano produkt:", product)
 
             elif choice == "2":
@@ -63,10 +64,10 @@ def main():
                     print("Błąd pobrania produktu z API:", e)
                     continue
                 product = service.create_product(
-                    product_id=api_product["id"],
                     name=api_product["title"],
-                    price_net=api_product["price"]
-                )
+                    price_net=api_product["price"],
+                    external_id=api_product["id"],
+            )
                 print("Dodano produkt z API:", product)
 
             elif choice == "4":
@@ -102,6 +103,11 @@ def main():
                 for p in products:
                     print(f"ID: {p['id']}, Nazwa: {p['name']}, Cena netto: {p['price_net']}, Cena brutto: {p['price_gross']}")
 
+            elif choice == "10":
+                limit = input_int("Ile pozycji rankingu: ")
+                deals = service.best_deals(limit)
+                for d in deals:
+                    print(f"ID:{d['id']} {d['name']} drop_net={d['drop_net']} min={d['min_net']} max={d['max_net']} samples={d['samples']}")
 
             elif choice == "0":
                 print("Koniec programu")

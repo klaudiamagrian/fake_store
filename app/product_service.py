@@ -1,3 +1,15 @@
+# Ten plik to logika biznesowa, czyli:
+# - walidacja nazwy (min długość, max długość, normalizacja),
+# - walidacja ceny (zakres, typ, max limit),
+# - obliczanie VAT,
+# - walidacja ceny brutto względem VAT,
+# - limit ceny maksymalnej,
+# - blokada duplikatu external_id,
+# - historia cen (snapshot),
+# - ranking best deals (SQL agregacyjny),
+# - rabat z ograniczeniem 0–90%,
+# - marża procentowa.
+
 class ProductService:
     """
     GŁÓWNY SERWIS BIZNESOWY PRODUKTÓW
@@ -9,6 +21,7 @@ class ProductService:
     - komunikuje się wyłącznie przez repozytorium
     """
 
+
     VAT_RATE = 0.23
     MAX_NAME_LENGTH = 80
     MAX_PRICE = 50_000
@@ -17,12 +30,16 @@ class ProductService:
         self.repo = repo
 
     # METODA NR 1 - NORMALIZE_NAME
-
+    # usuwa spacje w nazwie produktu z początku, środka i końca tekstu
     def normalize_name(self, name: str) -> str:
         name = (name or "").strip()
         return " ".join(name.split())
 
     # METODA NR 2 - VALIDATE_NAME
+    # - normalizacja wejścia (metoda 1),
+    # - jeśli mniej niż 3 znaki w nazwie produktu -> ValueError
+    # - jeśli więcej niż maksymalna długość (80) -> ValueError
+    # - jeśli wszystko ok -> pewność, że nazwa jest znormalizowana oraz spełnia warunki długości
     def validate_name(self, name: str) -> str:
         name = self.normalize_name(name)
         if len(name) < 3:
@@ -32,7 +49,12 @@ class ProductService:
         return name
 
     # METODA NR 3 - VALIDATE_PRICE_NET
-
+    # sprawdza, czy:
+    # - cena netto jest int lub float (walidacja typu danych) -> nie może być liczbą, [] - pustą tabelą lub None
+    # - cena jest większa od zera (jeśli równa bądź mniejsza od zera = ValueError)
+    # - cena nie przekracza maksymalnej ceny (50_000)
+    # - następuje konwersja do typu danych float i zaokrąglenie do 2 miejsc po przecinku
+    # - zwraca bezpieczną wartość do dalszego użycia
     def validate_price_net(self, price_net: float) -> float:
         if not isinstance(price_net, (int, float)):
             raise ValueError("Invalid net price type")
@@ -43,6 +65,8 @@ class ProductService:
         return round(float(price_net), 2)
 
     # METODA NR 4 - VALIDATE_PRICE_GROSS
+    # - oblicza cenę brutto według wzoru,
+    # -
 
     def validate_price_gross(self, price_net: float, price_gross: float) -> float:
         """
@@ -52,7 +76,7 @@ class ProductService:
 
         expected = price_net * (1 + self.VAT_RATE)
 
-        if abs(price_gross - expected) > 0.05:
+        if abs(price_gross - expected) > 0.05: # abs => żeby nie miało znaczenia, czy różnica jest dodatnia czy ujemna
             raise ValueError("Gross price does not match VAT rate")
 
         return round(float(price_gross), 2)

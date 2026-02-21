@@ -1,3 +1,11 @@
+# Ten plik to dostęp do MySQL.
+# - tworzy schemat (ensure_schema),
+# - zapisuje produkt,
+# - aktualizuje produkt,
+# - usuwa produkt,
+# - pobiera historię cen,
+# - robi ranking "best deals" (SQL agregacyjny).
+
 import os
 from decimal import Decimal
 

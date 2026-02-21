@@ -2,6 +2,17 @@ from product_client import ProductClient
 from product_repo import ProductRepo
 from product_service import ProductService
 
+# Ten plik to warstwa CLI - Command Line Interface (interfejs użytkownika)
+# Ta aplikacja jest obsługiwana przez terminal:
+# - wyświetla menu w terminalu,
+# - przyjmuje dane przez input(),
+# - wypisuje wynik przez print().
+
+# Ta aplikacja nie ma:
+# - GUI,
+# - przeglądarki,
+# - REST API.
+
 def input_int(prompt: str) -> int:
     """Bezpieczne wczytanie liczby całkowitej od użytkownika"""
     while True:
@@ -26,16 +37,16 @@ def main():
 
     while True:
         print("\n=== MENU ===")
-        print("1. Dodaj produkt ręcznie")
-        print("2. Wyświetl wszystkie produkty z FakeStore API")
-        print("3. Dodaj produkt z FakeStore API")
-        print("4. Aktualizuj cenę produktu")
-        print("5. Zmień nazwę produktu")
-        print("6. Zastosuj rabat")
-        print("7. Usuń produkt")
-        print("8. Wyświetl produkt z bazy")
-        print("9. Wyświetl wszystkie produkty z bazy")
-        print("10. Ranking best deals (największy spadek ceny)")
+        print("1. Dodaj produkt ręcznie") #product_service -> metoda create_product
+        print("2. Wyświetl wszystkie produkty z FakeStore API") #product_client -> metoda list_all
+        print("3. Dodaj produkt z FakeStore API") #product_client -> get(product_id), później product_service -> create_product()
+        print("4. Aktualizuj cenę produktu") #product_service -> update_price(), później product_repo -> get(), update(), add_price_snapshot()
+        print("5. Zmień nazwę produktu") #product_service -> rename_product
+        print("6. Zastosuj rabat") #product_service -> apply_discount
+        print("7. Usuń produkt") #product_service -> delete_product, później product_repo -> delete()
+        print("8. Wyświetl produkt z bazy") #product_repo -> get()
+        print("9. Wyświetl wszystkie produkty z bazy") #product_repo -> get_all
+        print("10. Ranking best deals (największy spadek ceny)") #product_service -> best_deals(), później product_repo -> get_best_deals
         print("0. Wyjście")
 
 

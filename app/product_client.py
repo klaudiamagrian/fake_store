@@ -1,4 +1,5 @@
-# app/product_client.py
+# Ten plik odpowiada za komunikację z API.
+
 import requests
 
 class ProductClient:
